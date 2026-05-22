@@ -109,14 +109,30 @@ export default function App() {
   if (screen === 'login') return <div className="min-h-screen">{renderScreen()}</div>;
 
   return (
-    <div className="min-h-screen bg-slate-100 flex">
-      {isAuthenticated && <div className="hidden lg:block"><DesktopSidebar activeTab={activeTab} onTabChange={handleTabChange} role={currentUser?.role || 'employee'} userName={currentUser?.name || ''} userAvatar={currentUser?.avatar || ''} userRole={currentUser?.role || 'employee'} /></div>}
-      <div className="flex-1 min-h-screen lg:ml-64">
+    <div className="min-h-screen flex bg-mesh noise-overlay relative">
+      {isAuthenticated && (
+        <div className="hidden lg:block relative z-10">
+          <DesktopSidebar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            role={currentUser?.role || 'employee'}
+            userName={currentUser?.name || ''}
+            userAvatar={currentUser?.avatar || ''}
+            userRole={currentUser?.role || 'employee'}
+            onLogout={handleLogout}
+          />
+        </div>
+      )}
+      <div className="flex-1 min-h-screen lg:ml-[260px] relative z-10">
         <AnimatePresence mode="wait">
           <motion.div key={screen} {...pageTransition} className="min-h-screen">{renderScreen()}</motion.div>
         </AnimatePresence>
       </div>
-      {showNav && isAuthenticated && <div className="lg:hidden"><BottomNav activeTab={activeTab} onTabChange={handleTabChange} role={currentUser?.role || 'employee'} /></div>}
+      {showNav && isAuthenticated && (
+        <div className="lg:hidden relative z-10">
+          <BottomNav activeTab={activeTab} onTabChange={handleTabChange} role={currentUser?.role || 'employee'} />
+        </div>
+      )}
     </div>
   );
 }

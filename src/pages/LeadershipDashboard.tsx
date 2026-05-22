@@ -1,8 +1,7 @@
 import { AVATARS } from '@/lib/images';
-
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, ClipboardList, Clock, Loader, PlusCircle, AlertTriangle, ShieldCheck, Camera, ChevronRight, TrendingUp, Activity } from 'lucide-react';
+import { Bell, ClipboardList, Clock, Loader, PlusCircle, AlertTriangle, ShieldCheck, Camera, ChevronRight, TrendingUp, Activity, Zap } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { SEVERITY_CONFIG } from '@/store/damageConfig';
 import type { Task, Report } from '@/types';
@@ -12,6 +11,86 @@ interface LeadershipDashboardProps {
   onTaskClick: (task: Task) => void;
   onReportClick: (report: Report) => void;
   onNotifications: () => void;
+}
+
+// Premium Stat Card
+function StatCard({ icon: Icon, label, value, sub, color, delay, onClick, pulse }: {
+  icon: React.ElementType; label: string; value: number; sub: string; color: string; delay: number; onClick: () => void; pulse?: boolean;
+}) {
+  const colorMap: Record<string, { bg: string; text: string; glow: string; gradient: string }> = {
+    amber: { bg: 'bg-amber-500/10', text: 'text-amber-400', glow: 'shadow-[0_0_15px_rgba(245,158,11,0.15)]', gradient: 'from-amber-500/20 to-amber-500/5' },
+    blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', glow: 'shadow-[0_0_15px_rgba(59,130,246,0.15)]', gradient: 'from-blue-500/20 to-blue-500/5' },
+    indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-400', glow: 'shadow-[0_0_15px_rgba(99,102,241,0.15)]', gradient: 'from-indigo-500/20 to-indigo-500/5' },
+    emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.15)]', gradient: 'from-emerald-500/20 to-emerald-500/5' },
+  };
+  const c = colorMap[color] || colorMap.blue;
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`glass-card rounded-2xl p-4 text-left w-full ${c.glow} hover:border-white/10 transition-all duration-300`}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center`}>
+          <Icon size={20} className={c.text} />
+        </div>
+        {pulse && value > 0 && (
+          <motion.span
+            className={`w-2.5 h-2.5 rounded-full ${c.bg.replace('/10', '')}`}
+            animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        )}
+      </div>
+      <p className={`text-3xl font-extrabold ${c.text}`}>{value}</p>
+      <p className="text-[11px] font-bold text-white/60 mt-0.5 uppercase tracking-wider">{label}</p>
+      <p className="text-[10px] text-white/30 mt-1">{sub}</p>
+    </motion.button>
+  );
+}
+
+// Task Card Premium
+function TaskCardPremium({ task, index, onClick, getUserById, borderColor = 'border-l-primary' }: {
+  task: Task; index: number; onClick: () => void; getUserById: (id: string) => any; borderColor?: string;
+}) {
+  return (
+    <motion.div
+      key={task.id}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.08, duration: 0.4 }}
+      whileHover={{ scale: 1.01, x: 4 }}
+      whileTap={{ scale: 0.99 }}
+      onClick={onClick}
+      className={`glass-card rounded-xl p-4 cursor-pointer transition-all duration-300 border-l-[3px] ${borderColor} group`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-white group-hover:text-primary transition-colors truncate">{task.title}</p>
+          <p className="text-xs text-white/40 mt-1 line-clamp-1">{task.description}</p>
+          <div className="flex items-center gap-2 mt-3">
+            {task.status === 'awaiting_verification' && (
+              <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-bold border border-indigo-500/20">VERIFY ME</span>
+            )}
+            {task.priority === 'urgent' && (
+              <span className="text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full font-bold border border-red-500/20">URGENT</span>
+            )}
+            {task.priority === 'high' && (
+              <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold border border-amber-500/20">HIGH</span>
+            )}
+            <span className="text-[10px] text-white/30">{task.location?.split(' — ')[1] || task.location}</span>
+          </div>
+        </div>
+        {task.assignedTo && (
+          <img src={getUserById(task.assignedTo)?.avatar || AVATARS.employee1} alt="" className="w-8 h-8 rounded-full object-cover ml-3 flex-shrink-0 ring-2 ring-white/5" />
+        )}
+      </div>
+    </motion.div>
+  );
 }
 
 export function LeadershipDashboard({ onNavigate, onTaskClick, onReportClick, onNotifications }: LeadershipDashboardProps) {
@@ -36,176 +115,168 @@ export function LeadershipDashboard({ onNavigate, onTaskClick, onReportClick, on
   const greeting = new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening';
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 lg:pb-6 lg:px-4 lg:pt-2">
-      <header className="bg-white px-4 h-16 flex items-center justify-between sticky top-0 z-40 shadow-sm lg:rounded-2xl lg:px-6">
+    <div className="min-h-screen bg-transparent pb-20 lg:pb-6 lg:px-6 lg:pt-4">
+      {/* Premium Header */}
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass rounded-2xl px-5 h-16 flex items-center justify-between sticky top-0 z-40 lg:px-6 mb-6"
+      >
         <div>
-          <h1 className="text-lg font-bold text-slate-800">{greeting}, {currentUser?.name.split(' ')[0]}</h1>
-          <span className="text-[10px] bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">Give and Go IM2 — Supervisor</span>
+          <h1 className="text-lg font-bold text-white tracking-tight">{greeting}, <span className="text-gradient-primary">{currentUser?.name.split(' ')[0]}</span></h1>
+          <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-medium">Give and Go IM2 — Supervisor</span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500 hidden sm:inline">{today}</span>
-          <button onClick={onNotifications} className="relative p-2">
-            <Bell size={20} className="text-slate-600" />
-            {unreadCount > 0 && <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center font-bold">{unreadCount}</span>}
-          </button>
+        <div className="flex items-center gap-4">
+          <span className="text-xs text-white/30 hidden sm:inline">{today}</span>
+          <motion.button onClick={onNotifications} className="relative p-2.5 rounded-xl glass-light hover:bg-white/5 transition-all" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Bell size={18} className="text-white/60" />
+            {unreadCount > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-gradient-to-br from-red-400 to-red-600 rounded-full text-[9px] text-white flex items-center justify-center font-bold shadow-glow-danger"
+              >
+                {unreadCount}
+              </motion.span>
+            )}
+          </motion.button>
         </div>
-      </header>
+      </motion.header>
 
-      {/* LIVE DAMAGE ALERTS */}
+      {/* LIVE DAMAGE ALERTS - Premium */}
       {stats.openDamage > 0 && (
-        <div className="px-4 mt-4 lg:px-0">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                <span className="text-xs font-bold tracking-wider uppercase text-white/90">Live Damage Alerts</span>
+        <div className="mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass rounded-2xl p-5 relative overflow-hidden"
+          >
+            {/* Animated gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl" />
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-20" />
+                    <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-600 rounded-full shadow-glow-danger relative" />
+                  </div>
+                  <span className="text-xs font-bold tracking-[0.15em] uppercase text-red-400">Live Damage Alerts</span>
+                </div>
+                <button onClick={() => onNavigate('damage')} className="text-[11px] text-white/50 font-medium hover:text-white flex items-center gap-0.5 transition-colors">
+                  View All <ChevronRight size={12} />
+                </button>
               </div>
-              <button onClick={() => onNavigate('damage')} className="text-[11px] text-white/80 font-medium hover:text-white flex items-center gap-0.5">
-                View All <ChevronRight size={12} />
-              </button>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <AlertTriangle size={24} className="text-white" />
+
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 glass rounded-2xl flex items-center justify-center">
+                    <AlertTriangle size={26} className="text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-4xl font-extrabold text-white">{stats.openDamage}</p>
+                    <p className="text-[11px] text-white/40">Active Damage Report{stats.openDamage > 1 ? 's' : ''}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-3xl font-bold">{stats.openDamage}</p>
-                  <p className="text-[11px] text-white/70">Active Damage Report{stats.openDamage > 1 ? 's' : ''}</p>
-                </div>
+                {stats.criticalDamage > 0 && (
+                  <div className="glass rounded-xl px-4 py-3 border border-red-500/20">
+                    <p className="text-[10px] text-red-400/70 uppercase tracking-wider">Critical</p>
+                    <p className="text-2xl font-extrabold text-red-400">{stats.criticalDamage}</p>
+                  </div>
+                )}
               </div>
-              {stats.criticalDamage > 0 && (
-                <div className="ml-auto bg-white/20 rounded-xl px-3 py-2">
-                  <p className="text-[10px] text-white/70 uppercase">Critical</p>
-                  <p className="text-xl font-bold">{stats.criticalDamage}</p>
-                </div>
-              )}
-            </div>
-            <div className="mt-3 space-y-2">
-              {liveDamage.slice(0, 2).map((d) => {
-                const sev = SEVERITY_CONFIG[d.severity || 'medium'];
-                return (
-                  <button key={d.id} onClick={() => onReportClick(d)} className="w-full text-left bg-white/10 rounded-xl p-2.5 flex items-center gap-2 hover:bg-white/20 transition-colors">
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${sev.bg} ${sev.text}`}>{d.severity?.toUpperCase()}</span>
-                    <span className="text-xs text-white/90 line-clamp-1 flex-1">{d.description}</span>
-                    <ChevronRight size={12} className="text-white/60" />
-                  </button>
-                );
-              })}
+
+              <div className="mt-4 space-y-2">
+                {liveDamage.slice(0, 2).map((d) => {
+                  const sev = SEVERITY_CONFIG[d.severity || 'medium'];
+                  return (
+                    <motion.button
+                      key={d.id}
+                      onClick={() => onReportClick(d)}
+                      whileHover={{ x: 4 }}
+                      className="w-full text-left glass-light rounded-xl p-3 flex items-center gap-3 hover:bg-white/[0.05] transition-all group"
+                    >
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${sev.bg} ${sev.text} border border-current/20`}>{d.severity?.toUpperCase()}</span>
+                      <span className="text-xs text-white/70 line-clamp-1 flex-1 group-hover:text-white transition-colors">{d.description}</span>
+                      <ChevronRight size={12} className="text-white/20 group-hover:text-white/50 transition-colors" />
+                    </motion.button>
+                  );
+                })}
+              </div>
             </div>
           </motion.div>
         </div>
       )}
 
-      {/* TASK COMMAND CENTER */}
-      <div className="px-4 mt-4 lg:px-0">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+      {/* TASK COMMAND CENTER - Premium */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2 tracking-wide">
             <Activity size={16} className="text-primary" />
             Task Command Center
           </h2>
-          <button onClick={() => onNavigate('alltasks')} className="text-xs text-primary font-medium flex items-center gap-0.5">
+          <button onClick={() => onNavigate('alltasks')} className="text-xs text-primary font-medium flex items-center gap-0.5 hover:text-primary/70 transition-colors">
             All Tasks <ChevronRight size={14} />
           </button>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            onClick={() => onNavigate('alltasks')} className="bg-white rounded-2xl p-4 shadow-card border-2 border-amber-200 cursor-pointer">
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                <Clock size={20} className="text-amber-600" />
-              </div>
-              {stats.pending > 0 && <span className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />}
-            </div>
-            <p className="text-3xl font-bold text-amber-700">{stats.pending}</p>
-            <p className="text-[11px] font-semibold text-amber-600 mt-0.5 uppercase tracking-wide">Pending</p>
-            <p className="text-[10px] text-slate-400 mt-1">Need assignment</p>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-            onClick={() => onNavigate('alltasks')} className="bg-white rounded-2xl p-4 shadow-card border-2 border-blue-200 cursor-pointer">
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Loader size={20} className="text-blue-600" />
-              </div>
-              {stats.inProgress > 0 && <span className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse" />}
-            </div>
-            <p className="text-3xl font-bold text-blue-700">{stats.inProgress}</p>
-            <p className="text-[11px] font-semibold text-blue-600 mt-0.5 uppercase tracking-wide">In Progress</p>
-            <p className="text-[10px] text-slate-400 mt-1">Being worked on</p>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            onClick={() => onNavigate('alltasks')} className="bg-white rounded-2xl p-4 shadow-card border-2 border-indigo-200 cursor-pointer">
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                <ShieldCheck size={20} className="text-indigo-600" />
-              </div>
-              {stats.awaitingV > 0 && <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-pulse" />}
-            </div>
-            <p className="text-3xl font-bold text-indigo-700">{stats.awaitingV}</p>
-            <p className="text-[11px] font-semibold text-indigo-600 mt-0.5 uppercase tracking-wide">Awaiting Verify</p>
-            <p className="text-[10px] text-slate-400 mt-1">Needs your approval</p>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            onClick={() => onNavigate('alltasks')} className="bg-white rounded-2xl p-4 shadow-card border-2 border-emerald-200 cursor-pointer">
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                <TrendingUp size={20} className="text-emerald-600" />
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-emerald-700">{stats.verified}</p>
-            <p className="text-[11px] font-semibold text-emerald-600 mt-0.5 uppercase tracking-wide">Completed</p>
-            <p className="text-[10px] text-slate-400 mt-1">Fully verified</p>
-          </motion.div>
+          <StatCard icon={Clock} label="Pending" value={stats.pending} sub="Need assignment" color="amber" delay={0} onClick={() => onNavigate('alltasks')} pulse />
+          <StatCard icon={Loader} label="In Progress" value={stats.inProgress} sub="Being worked on" color="blue" delay={0.05} onClick={() => onNavigate('alltasks')} pulse />
+          <StatCard icon={ShieldCheck} label="Awaiting Verify" value={stats.awaitingV} sub="Needs your approval" color="indigo" delay={0.1} onClick={() => onNavigate('alltasks')} pulse />
+          <StatCard icon={TrendingUp} label="Completed" value={stats.verified} sub="Fully verified" color="emerald" delay={0.15} onClick={() => onNavigate('alltasks')} />
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="px-4 mt-4 lg:px-0">
-        <div className="bg-white rounded-2xl p-4 shadow-card">
-          <p className="text-[10px] text-slate-400 uppercase font-semibold mb-3 tracking-wider">Quick Actions</p>
+      {/* Quick Actions - Premium */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mb-6"
+      >
+        <div className="glass rounded-2xl p-5">
+          <p className="text-[10px] text-white/30 uppercase font-bold mb-4 tracking-[0.15em]">Quick Actions</p>
           <div className="flex items-center gap-3">
-            <button onClick={() => onNavigate('createtask')} className="flex-1 h-12 bg-primary text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-button active:scale-[0.97] transition-transform">
-              <PlusCircle size={16} /> Create Task
-            </button>
-            <button onClick={() => onNavigate('capture')} className="flex-1 h-12 bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
-              <Camera size={16} /> Snap & Create
-            </button>
-            <button onClick={() => onNavigate('damage')} className="flex-1 h-12 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-transform">
-              <AlertTriangle size={16} /> Damage
-            </button>
+            <motion.button
+              onClick={() => onNavigate('createtask')}
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex-1 h-14 bg-gradient-primary text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-button active:shadow-none transition-shadow"
+            >
+              <PlusCircle size={18} /> Create Task
+            </motion.button>
+            <motion.button
+              onClick={() => onNavigate('capture')}
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex-1 h-14 glass-light text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-white/[0.07] transition-all border border-white/[0.08]"
+            >
+              <Camera size={18} /> Snap & Create
+            </motion.button>
+            <motion.button
+              onClick={() => onNavigate('damage')}
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex-1 h-14 bg-gradient-danger text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-glow-danger active:shadow-none transition-shadow"
+            >
+              <AlertTriangle size={18} /> Damage
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Awaiting Verification */}
       {awaitingVTasks.length > 0 && (
-        <div className="px-4 mt-4 lg:px-0">
-          <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck size={16} className="text-indigo-600" />
-            <h2 className="text-sm font-bold text-slate-800">Needs Your Verification</h2>
-            <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">{stats.awaitingV}</span>
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <ShieldCheck size={16} className="text-indigo-400" />
+            <h2 className="text-sm font-bold text-white tracking-wide">Needs Your Verification</h2>
+            <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-2.5 py-0.5 rounded-full font-bold border border-indigo-500/20">{stats.awaitingV}</span>
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {awaitingVTasks.map((task, i) => (
-              <motion.div key={task.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                onClick={() => onTaskClick(task)}
-                className="bg-white rounded-xl p-3.5 shadow-card cursor-pointer active:scale-[0.98] transition-transform border-l-[3px] border-l-indigo-500">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{task.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{task.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold">VERIFY ME</span>
-                      <span className="text-[10px] text-slate-400">{task.completionNotes}</span>
-                    </div>
-                  </div>
-                  {task.assignedTo && <img src={getUserById(task.assignedTo)?.avatar || AVATARS.employee1} alt="" className="w-7 h-7 rounded-full object-cover ml-2 flex-shrink-0" />}
-                </div>
-              </motion.div>
+              <TaskCardPremium key={task.id} task={task} index={i} onClick={() => onTaskClick(task)} getUserById={getUserById} borderColor="border-l-indigo-500" />
             ))}
           </div>
         </div>
@@ -213,61 +284,53 @@ export function LeadershipDashboard({ onNavigate, onTaskClick, onReportClick, on
 
       {/* URGENT TASKS */}
       {urgentTasks.length > 0 && (
-        <div className="px-4 mt-4 lg:px-0">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle size={16} className="text-red-500" />
-            <h2 className="text-sm font-bold text-slate-800">Urgent / High Priority</h2>
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Zap size={16} className="text-amber-400" />
+            <h2 className="text-sm font-bold text-white tracking-wide">Urgent / High Priority</h2>
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {urgentTasks.map((task, i) => (
-              <motion.div key={task.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                onClick={() => onTaskClick(task)}
-                className="bg-white rounded-xl p-3.5 shadow-card cursor-pointer active:scale-[0.98] transition-transform border-l-[3px] border-l-red-400">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{task.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{task.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[10px] bg-red-50 text-red-700 px-1.5 py-0.5 rounded-full font-bold">{task.priority.toUpperCase()}</span>
-                      <span className="text-[10px] text-slate-400">{task.location.split(' — ')[1] || task.location}</span>
-                    </div>
-                  </div>
-                  {task.assignedTo && <img src={getUserById(task.assignedTo)?.avatar || AVATARS.employee1} alt="" className="w-7 h-7 rounded-full object-cover ml-2 flex-shrink-0" />}
-                </div>
-              </motion.div>
+              <TaskCardPremium key={task.id} task={task} index={i} onClick={() => onTaskClick(task)} getUserById={getUserById} borderColor="border-l-amber-500" />
             ))}
           </div>
         </div>
       )}
 
-      {/* Total Summary Bar */}
-      <div className="px-4 mt-4 lg:px-0 pb-4">
-        <div className="bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-4 text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-              <ClipboardList size={20} className="text-white" />
+      {/* Total Summary Bar - Premium */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="pb-4"
+      >
+        <div className="glass rounded-2xl p-5 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent" />
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="w-12 h-12 glass rounded-2xl flex items-center justify-center">
+              <ClipboardList size={22} className="text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-xs text-white/60">Total Tasks Today</p>
-              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-xs text-white/40">Total Tasks Today</p>
+              <p className="text-3xl font-extrabold text-white">{stats.total}</p>
             </div>
-            <div className="flex gap-4 text-center">
+            <div className="flex gap-6 text-center">
               <div>
-                <p className="text-lg font-bold text-amber-400">{stats.pending}</p>
-                <p className="text-[9px] text-white/50 uppercase">Pending</p>
+                <p className="text-xl font-bold text-amber-400">{stats.pending}</p>
+                <p className="text-[9px] text-white/30 uppercase tracking-wider">Pending</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-blue-400">{stats.inProgress}</p>
-                <p className="text-[9px] text-white/50 uppercase">Active</p>
+                <p className="text-xl font-bold text-blue-400">{stats.inProgress}</p>
+                <p className="text-[9px] text-white/30 uppercase tracking-wider">Active</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-emerald-400">{stats.verified}</p>
-                <p className="text-[9px] text-white/50 uppercase">Done</p>
+                <p className="text-xl font-bold text-emerald-400">{stats.verified}</p>
+                <p className="text-[9px] text-white/30 uppercase tracking-wider">Done</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
