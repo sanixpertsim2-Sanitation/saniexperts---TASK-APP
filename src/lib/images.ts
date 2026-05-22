@@ -4,8 +4,8 @@ export function img(path: string): string {
   return import.meta.env.BASE_URL + cleanPath;
 }
 
-// Premium Logo
-export const LOGO = img('sanixperts-logo-premium.png');
+// OmniTask Premium Logo
+export const LOGO = img('omnitask-logo.png');
 
 // Avatars
 export const AVATARS = {
@@ -21,6 +21,3 @@ export const PHOTOS = {
   cleaning2: img('photos/task-photo-cleaning-2.jpg'),
   damage1: img('photos/damage-photo-1.jpg'),
 };
-
-// Backgrounds
-export const BG_DASHBOARD = img('bg-dashboard-dark.jpg');

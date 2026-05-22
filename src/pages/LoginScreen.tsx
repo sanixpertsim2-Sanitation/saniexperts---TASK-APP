@@ -1,38 +1,61 @@
 import { LOGO } from '@/lib/images';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Building2, Shield, Droplets, Sparkles } from 'lucide-react';
+import { ArrowRight, Building2 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 
 interface LoginScreenProps {
   onLogin: (user: { id: string; name: string; phone: string; role: 'employee' | 'leadership' }) => void;
 }
 
-// Animated floating particles
-function FloatingParticles() {
+/* ===== CINEMATIC 3D FLOATING ORBS ===== */
+function CinematicOrbs() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-primary/30"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -30, 0],
-            opacity: [0, 0.8, 0],
-            scale: [0.5, 1.2, 0.5],
-          }}
-          transition={{
-            duration: 3 + Math.random() * 4,
-            repeat: Infinity,
-            delay: Math.random() * 3,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
+      {/* Large gold orb - slow float */}
+      <div
+        className="absolute w-[500px] h-[500px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.03) 40%, transparent 70%)',
+          left: '-10%',
+          top: '10%',
+          animation: 'orb-float-1 20s ease-in-out infinite',
+          filter: 'blur(40px)',
+        }}
+      />
+      {/* Medium blue-gold orb */}
+      <div
+        className="absolute w-[400px] h-[400px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, rgba(59,130,246,0.04) 50%, transparent 70%)',
+          right: '-5%',
+          top: '50%',
+          animation: 'orb-float-2 15s ease-in-out infinite',
+          filter: 'blur(50px)',
+        }}
+      />
+      {/* Small accent orb */}
+      <div
+        className="absolute w-[300px] h-[300px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(244,208,63,0.1) 0%, transparent 60%)',
+          left: '40%',
+          bottom: '10%',
+          animation: 'orb-float-3 18s ease-in-out infinite',
+          filter: 'blur(30px)',
+        }}
+      />
+      {/* Grid overlay for depth */}
+      <div
+        className="absolute inset-0 opacity-[0.015]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(212,175,55,0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(212,175,55,0.3) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+        }}
+      />
     </div>
   );
 }
@@ -43,8 +66,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const login = useStore((s) => s.login);
-
-  useEffect(() => { document.body.classList.add('overflow-hidden'); return () => document.body.classList.remove('overflow-hidden'); }, []);
 
   const formatPhone = (input: string) => {
     const cleaned = input.replace(/\D/g, '').slice(0, 10);
@@ -77,216 +98,240 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-mesh noise-overlay relative flex flex-col lg:flex-row overflow-hidden">
-      <FloatingParticles />
+    <div className="min-h-screen bg-cinematic relative overflow-hidden">
+      <CinematicOrbs />
 
-      {/* Left Panel - Premium Branding */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-10 pb-8 lg:py-0 relative z-10">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col items-center"
-        >
-          {/* Glowing Logo Container */}
+      <div className="relative z-10 min-h-screen flex flex-col lg:flex-row">
+        {/* ===== LEFT: CINEMATIC 3D BRANDING ===== */}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-8 lg:py-0">
           <motion.div
-            className="relative mb-6"
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-primary/20 rounded-3xl blur-2xl scale-125" />
-            <div className="relative w-24 h-24 lg:w-32 lg:h-32 glass-card rounded-3xl flex items-center justify-center shadow-glow">
-              <img src={LOGO} alt="SaniXperts" className="w-20 h-20 lg:w-28 lg:h-28 object-contain" />
-            </div>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-3xl lg:text-5xl font-extrabold text-gradient-primary tracking-tight"
+            transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
+            className="flex flex-col items-center"
           >
-            SaniXperts
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35 }}
-            className="text-white/50 text-sm lg:text-base mt-3 text-center font-medium tracking-wide"
-          >
-            TASK MANAGEMENT SYSTEM
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45 }}
-            className="flex items-center gap-2 mt-5 text-white/40 text-xs lg:text-sm"
-          >
-            <Building2 size={14} className="text-primary/70" />
-            <span>Give and Go IM2 — Facility</span>
-          </motion.div>
-
-          {/* Feature badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55 }}
-            className="flex items-center gap-4 mt-8"
-          >
-            {[
-              { icon: Shield, label: 'Verified' },
-              { icon: Droplets, label: 'Sanitation' },
-              { icon: Sparkles, label: 'HACCP' },
-            ].map((item, i) => (
+            {/* 3D Logo with cinematic glow */}
+            <motion.div
+              className="relative mb-8"
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ perspective: 1000 }}
+            >
+              <div className="absolute inset-0 bg-gold-gradient rounded-3xl blur-3xl opacity-30 scale-150" />
               <motion.div
-                key={item.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 + i * 0.1 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-light text-white/60 text-xs"
+                className="relative w-28 h-28 lg:w-36 lg:h-36 rounded-3xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(145deg, rgba(17,24,39,0.9), rgba(6,9,18,0.95))',
+                  border: '1px solid rgba(212,175,55,0.15)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
+                  transformStyle: 'preserve-3d',
+                }}
+                whileHover={{ rotateY: 10, rotateX: -5, scale: 1.05 }}
+                transition={{ duration: 0.5 }}
               >
-                <item.icon size={12} className="text-primary" />
-                {item.label}
+                <img src={LOGO} alt="OmniTask" className="w-20 h-20 lg:w-28 lg:h-28 object-contain" style={{ transform: 'translateZ(20px)' }} />
               </motion.div>
-            ))}
+            </motion.div>
+
+            {/* Brand name with gold gradient */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="font-display text-4xl lg:text-6xl font-bold text-gold-gradient tracking-tight"
+            >
+              OmniTask
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="text-white/30 text-xs lg:text-sm mt-3 tracking-[0.3em] uppercase font-medium"
+            >
+              Precision Operations
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center gap-2 mt-5 text-white/20 text-xs"
+            >
+              <Building2 size={13} />
+              <span>Give and Go IM2 — Facility</span>
+            </motion.div>
+
+            {/* Decorative line */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 0.6, duration: 1 }}
+              className="w-24 h-px bg-gradient-to-r from-transparent via-gold-500/40 to-transparent mt-6"
+            />
           </motion.div>
-        </motion.div>
-      </div>
+        </div>
 
-      {/* Right Panel - Premium Login Form */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={showOTP ? 'otp' : 'login'}
-          initial={{ x: 80, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -80, opacity: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="relative z-10 lg:w-[500px]"
-        >
-          <div className="h-full glass rounded-t-[2rem] lg:rounded-none lg:rounded-l-[2rem] px-6 pt-8 pb-10 lg:px-10 lg:flex lg:flex-col lg:justify-center border-x-0 border-b-0 border-t border-white/5">
-            {!showOTP ? (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">Welcome Back</h2>
-                <p className="text-sm text-white/40 mb-8">Sign in with your phone number</p>
+        {/* ===== RIGHT: CINEMATIC LOGIN PANEL ===== */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={showOTP ? 'otp' : 'login'}
+            initial={{ x: 60, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -60, opacity: 0 }}
+            transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            className="lg:w-[480px] relative z-10"
+          >
+            <div
+              className="h-full rounded-t-[2rem] lg:rounded-none lg:rounded-l-[2rem] px-6 pt-8 pb-10 lg:px-10 lg:flex lg:flex-col lg:justify-center"
+              style={{
+                background: 'rgba(6, 9, 18, 0.7)',
+                backdropFilter: 'blur(40px) saturate(150%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(150%)',
+                borderTop: '1px solid rgba(212,175,55,0.06)',
+                borderLeft: '1px solid rgba(212,175,55,0.04)',
+                boxShadow: '-20px 0 60px rgba(0,0,0,0.3)',
+              }}
+            >
+              {!showOTP ? (
+                <div>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                    <h2 className="font-display text-2xl font-bold text-white mb-1">Welcome Back</h2>
+                    <p className="text-sm text-white/30 mb-8">Sign in with your phone number</p>
+                  </motion.div>
 
-                {/* Phone Input - Premium */}
-                <div className="mb-5">
-                  <label className="text-xs font-medium text-white/50 mb-2 block tracking-wide uppercase">Phone Number</label>
-                  <div className="glass-light rounded-2xl px-4 h-14 flex items-center focus-within:ring-2 focus-within:ring-primary/30 transition-all duration-300">
-                    <span className="text-white/60 font-semibold mr-3 text-sm border-r border-white/10 pr-3">+1</span>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => { setPhone(formatPhone(e.target.value)); setError(''); }}
-                      placeholder="(416) 555-0100"
-                      className="flex-1 bg-transparent text-sm outline-none text-white placeholder:text-white/20 font-medium"
-                    />
-                  </div>
-                  {error && <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-xs text-red-400 mt-2">{error}</motion.p>}
-                </div>
-
-                {/* Premium Send OTP Button */}
-                <motion.button
-                  onClick={handleSendOTP}
-                  disabled={phone.replace(/\D/g, '').length !== 10}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full h-14 bg-gradient-primary text-white font-bold rounded-2xl shadow-button active:shadow-none transition-shadow disabled:opacity-40 disabled:shadow-none flex items-center justify-center gap-2 text-sm tracking-wide"
-                >
-                  Send OTP <ArrowRight size={18} />
-                </motion.button>
-
-                {/* Demo Credentials - Premium Cards */}
-                <div className="mt-10">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                    <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-semibold">Pilot Demo — Click to Login</p>
-                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                  </div>
-
-                  <div className="space-y-3">
-                    {/* Supervisor Card */}
-                    <motion.button
-                      onClick={() => handleQuickLogin('+1-416-555-0201')}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full p-4 glass-card rounded-2xl hover:border-primary/30 transition-all duration-300 text-left group"
+                  {/* Phone Input - Cinematic */}
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-5">
+                    <label className="text-[10px] font-semibold text-white/30 mb-2 block tracking-[0.2em] uppercase">Phone Number</label>
+                    <div
+                      className="rounded-2xl px-4 h-14 flex items-center transition-all duration-300 focus-within:shadow-gold-sm"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                      }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all">
-                          <img src="/avatars/avatar-leader-1.jpg" alt="" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">Supervisor Portal</p>
-                          <p className="text-xs text-white/40">Robert Hayes — Team Leader</p>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                          <span className="text-[10px] text-white/30 font-mono">Online</span>
-                        </div>
-                      </div>
-                    </motion.button>
+                      <span className="text-gold-500 font-bold mr-3 text-sm border-r border-white/10 pr-3">+1</span>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => { setPhone(formatPhone(e.target.value)); setError(''); }}
+                        placeholder="(416) 555-0100"
+                        className="flex-1 bg-transparent text-sm outline-none text-white placeholder:text-white/15 font-medium"
+                      />
+                    </div>
+                    {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-red-400 mt-2">{error}</motion.p>}
+                  </motion.div>
 
-                    {/* Employee Card */}
-                    <motion.button
-                      onClick={() => handleQuickLogin('+1-416-555-0101')}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full p-4 glass-card rounded-2xl hover:border-primary/30 transition-all duration-300 text-left group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-white/5 group-hover:ring-primary/30 transition-all">
-                          <img src="/avatars/avatar-employee-1.jpg" alt="" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">Employee Portal</p>
-                          <p className="text-xs text-white/40">Raj Patel — Morning Shift</p>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                          <span className="text-[10px] text-white/30 font-mono">Online</span>
-                        </div>
-                      </div>
-                    </motion.button>
-                  </div>
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    className="mt-5 glass-light rounded-xl p-4 text-center"
+                  {/* Cinematic Gold Button */}
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                    onClick={handleSendOTP}
+                    disabled={phone.replace(/\D/g, '').length !== 10}
+                    whileHover={{ scale: 1.01, y: -1 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full h-14 bg-gold-gradient text-navy-900 font-bold rounded-2xl shadow-button disabled:opacity-30 disabled:shadow-none flex items-center justify-center gap-2 text-sm tracking-wide transition-all"
                   >
-                    <p className="text-[10px] text-white/30 leading-relaxed">
-                      Additional employees: +1-416-555-0102 through 0108<br/>
-                      Additional supervisors: +1-416-555-0202, 0203
-                    </p>
+                    Send OTP <ArrowRight size={18} />
+                  </motion.button>
+
+                  {/* Demo Cards - Cinematic 3D */}
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-10">
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gold-500/20 to-transparent" />
+                      <p className="text-[9px] text-white/20 uppercase tracking-[0.2em] font-semibold">Pilot Access</p>
+                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gold-500/20 to-transparent" />
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* Supervisor - 3D Card */}
+                      <motion.button
+                        onClick={() => handleQuickLogin('+1-416-555-0201')}
+                        whileHover={{ scale: 1.02, y: -3, rotateX: 2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full p-4 rounded-2xl text-left transition-all duration-300 group"
+                        style={{
+                          background: 'linear-gradient(145deg, rgba(212,175,55,0.06), rgba(17,24,39,0.5))',
+                          border: '1px solid rgba(212,175,55,0.1)',
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                          transformStyle: 'preserve-3d',
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-gold-500/20 group-hover:ring-gold-500/50 transition-all">
+                            <img src="/avatars/avatar-leader-1.jpg" alt="" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white group-hover:text-gold-light transition-colors">Supervisor Portal</p>
+                            <p className="text-xs text-white/30">Robert Hayes — Team Leader</p>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] text-white/20">Active</span>
+                          </div>
+                        </div>
+                      </motion.button>
+
+                      {/* Employee - 3D Card */}
+                      <motion.button
+                        onClick={() => handleQuickLogin('+1-416-555-0101')}
+                        whileHover={{ scale: 1.02, y: -3, rotateX: 2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full p-4 rounded-2xl text-left transition-all duration-300 group"
+                        style={{
+                          background: 'linear-gradient(145deg, rgba(255,255,255,0.03), rgba(17,24,39,0.3))',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                          transformStyle: 'preserve-3d',
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-white/5 group-hover:ring-gold-500/30 transition-all">
+                            <img src="/avatars/avatar-employee-1.jpg" alt="" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white group-hover:text-gold-light transition-colors">Employee Portal</p>
+                            <p className="text-xs text-white/30">Raj Patel — Morning Shift</p>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] text-white/20">Active</span>
+                          </div>
+                        </div>
+                      </motion.button>
+                    </div>
                   </motion.div>
                 </div>
-              </div>
-            ) : (
-              <div>
-                <button onClick={() => { setShowOTP(false); setOtp(['', '', '', '', '', '']); }} className="text-sm text-primary font-medium mb-4 hover:text-primary/80">Back</button>
-                <h2 className="text-2xl font-bold text-white mb-1">Enter OTP</h2>
-                <p className="text-sm text-white/40 mb-8">Code sent to +1 {phone}</p>
-                <div className="flex gap-3 mb-6 justify-center">
-                  {otp.map((digit, i) => (
-                    <input
-                      key={i}
-                      id={`otp-${i}`}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(i, e.target.value)}
-                      className="w-14 h-16 glass-light rounded-2xl text-center text-2xl font-bold text-white focus:ring-2 focus:ring-primary/30 focus:border-primary/50 outline-none transition-all"
-                    />
-                  ))}
+              ) : (
+                <div>
+                  <button onClick={() => { setShowOTP(false); setOtp(['', '', '', '', '', '']); }} className="text-sm text-gold-500 font-medium mb-4 hover:text-gold-light">Back</button>
+                  <h2 className="font-display text-2xl font-bold text-white mb-1">Enter OTP</h2>
+                  <p className="text-sm text-white/30 mb-8">Code sent to +1 {phone}</p>
+                  <div className="flex gap-3 mb-6 justify-center">
+                    {otp.map((digit, i) => (
+                      <input
+                        key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={digit}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        className="w-14 h-16 rounded-2xl text-center text-2xl font-bold text-white focus:shadow-gold-sm outline-none transition-all"
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </AnimatePresence>
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* CSS for orb animations */}
+      <style>{`
+        @keyframes orb-float-1 { 0%,100%{transform:translate(0,0)scale(1);opacity:.4} 33%{transform:translate(30px,-40px)scale(1.1);opacity:.6} 66%{transform:translate(-20px,-60px)scale(.9);opacity:.3} }
+        @keyframes orb-float-2 { 0%,100%{transform:translate(0,0)scale(1);opacity:.3} 33%{transform:translate(-40px,30px)scale(1.2);opacity:.5} 66%{transform:translate(30px,20px)scale(.8);opacity:.2} }
+        @keyframes orb-float-3 { 0%,100%{transform:translate(0,0)scale(1);opacity:.2} 50%{transform:translate(50px,-30px)scale(1.3);opacity:.4} }
+      `}</style>
     </div>
   );
 }

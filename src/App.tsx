@@ -109,7 +109,7 @@ export default function App() {
   if (screen === 'login') return <div className="min-h-screen">{renderScreen()}</div>;
 
   return (
-    <div className="min-h-screen flex bg-mesh noise-overlay relative">
+    <div className="min-h-screen flex bg-cinematic noise-overlay relative">
       {isAuthenticated && (
         <div className="hidden lg:block relative z-10">
           <DesktopSidebar
